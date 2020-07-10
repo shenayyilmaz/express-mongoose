@@ -1,21 +1,50 @@
 const Tour = require('../models/tourModel');
 
-//  Validation
-// exports.checkId = (req, res, next, val) => {
-//   // string*1 = number
-//   const id = req.params.id * 1;
-//   const tour = tours.find((el) => el.id === id);
-//   if (!tour) {
-//     return res.status(404).json({ status: 'fail', message: 'Invalid ID' });
-//   }
-//   req.tour = tour;
-//   next();
-// };
-
 // 2) ROUTE HANDELERS FUNCTIONS
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    //BUILD QUERY
+    // 1 A) Filtering
+
+    let queryObj = { ...req.query };
+    const excludedFields = ['fields', 'page', 'sort', 'limit'];
+
+    excludedFields.forEach((el) => {
+      delete queryObj[el];
+    });
+
+    // 2 B) Advance Filtering
+    let queryStr = JSON.stringify(queryObj);
+    //() found
+    //b exactly gte or gt ..
+    // g can found many times not first one and stop
+    queryStr = queryStr.replace(
+      /\b(gte| gt | lte | lt )\b/g,
+      (match) => `$${match}`
+    );
+
+    const query = Tour.find(JSON.parse(queryStr));
+
+    //SORTING
+    //query.sort('difficulty price')  once difficulty gore siraliyo ayni varsa ornek easy easy ikitane bunlarida kendi arasinda price gore olucak sekilde siraliyo
+
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query.sort(sortBy);
+    } else {
+      query.sort('-createdAt');
+    }
+
+    //EXECUTE QUERY
+    const tours = await query;
+
+    // const tours = await Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
+
+    // SEND RESPONSE
     res.status(200).json({
       status: 'success',
       results: tours.lenght,
