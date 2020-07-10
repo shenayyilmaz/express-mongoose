@@ -25,7 +25,7 @@ exports.getAllTours = async (req, res) => {
 
     const query = Tour.find(JSON.parse(queryStr));
 
-    //SORTING
+    // 2) SORTING
     //query.sort('difficulty price')  once difficulty gore siraliyo ayni varsa ornek easy easy ikitane bunlarida kendi arasinda price gore olucak sekilde siraliyo
 
     if (req.query.sort) {
