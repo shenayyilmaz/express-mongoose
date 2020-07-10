@@ -35,6 +35,14 @@ exports.getAllTours = async (req, res) => {
       query.sort('-createdAt');
     }
 
+    // 3) Field limiting
+    // query.select(name difficulty price)  gibi
+    if (req.query.fields) {
+      let fields = req.query.fields.split(',').join(' ');
+      query.select(fields);
+    } else {
+      query.select('-__v');
+    }
     //EXECUTE QUERY
     const tours = await query;
 
