@@ -1,5 +1,14 @@
 const Tour = require('../models/tourModel');
 
+exports.aliasTopTours = (req, res, next) => {
+  //bu sekilde fill yapiyoruz req.query post ayri ayri key value yerine
+  //limit=5&sort=-ratingsAverage,price&fields=ratingsAverage,price
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.fields = 'name,price,ratingsAverage,price,summary,difficulty';
+  next();
+};
+
 // 2) ROUTE HANDELERS FUNCTIONS
 exports.getAllTours = async (req, res) => {
   try {
@@ -43,8 +52,21 @@ exports.getAllTours = async (req, res) => {
     } else {
       query.select('-__v');
     }
+
+    // 4) Pagination
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 10;
+    const skip = (page - 1) * limit;
+    query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error('This page not exist');
+    }
+
     //EXECUTE QUERY
     const tours = await query;
+    //query.sort().select().skip().limit()
 
     // const tours = await Tour.find()
     //   .where('duration')
